@@ -526,6 +526,216 @@ const server = http.createServer((req, res) => {
       }
     }
 
+    /* Interactive Objects Container */
+    .interactive-objects {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* Light Mode: Walking Footprints */
+    .footprint {
+      position: absolute;
+      pointer-events: auto;
+      display: block;
+      opacity: 0;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    [data-theme="dark"] .footprint {
+      display: none;
+    }
+
+    .footprint:hover {
+      animation: footprintRunAway 0.8s ease-out forwards !important;
+    }
+
+    .footprint.clicked {
+      animation: footprintSprint 1.2s ease-out forwards !important;
+    }
+
+    .footprint svg {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 2px 4px rgba(155, 138, 196, 0.3));
+    }
+
+    @keyframes walkPath {
+      0% {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      5% {
+        opacity: 0.8;
+      }
+      95% {
+        opacity: 0.8;
+      }
+      100% {
+        opacity: 0;
+        transform: scale(1.2);
+      }
+    }
+
+    @keyframes footprintRunAway {
+      0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 0.6;
+      }
+      100% {
+        transform: translate(var(--run-x, 150px), var(--run-y, -150px)) scale(0.5);
+        opacity: 0;
+      }
+    }
+
+    @keyframes footprintSprint {
+      0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 0.6;
+      }
+      50% {
+        transform: translate(var(--sprint-x, 250px), var(--sprint-y, -250px)) scale(1.3);
+        opacity: 0.4;
+      }
+      100% {
+        transform: translate(calc(var(--sprint-x, 250px) * 2), calc(var(--sprint-y, -250px) * 2)) scale(0.3);
+        opacity: 0;
+      }
+    }
+
+    /* Dark Mode: Interactive Plus Stars */
+    .plus-star {
+      position: absolute;
+      pointer-events: auto;
+      display: none;
+      width: 12px;
+      height: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    [data-theme="dark"] .plus-star {
+      display: block;
+    }
+
+    .plus-star:hover::before,
+    .plus-star:hover::after {
+      background: rgba(255, 255, 255, 1);
+      box-shadow: 0 0 15px rgba(255, 255, 255, 1), 0 0 30px rgba(255, 255, 255, 0.5);
+    }
+
+    .plus-star.shooting {
+      animation: starFloat 5s ease-in-out infinite, 
+                 starTwinkle 2s ease-in-out infinite,
+                 shootingStar 3s ease-in-out forwards;
+    }
+
+    .plus-star.shooting::after {
+      content: '';
+      position: absolute;
+      width: 300px;
+      height: 3px;
+      background: linear-gradient(90deg, 
+        rgba(255, 255, 255, 0.9) 0%, 
+        rgba(255, 255, 255, 0.6) 20%,
+        rgba(255, 255, 255, 0) 100%);
+      left: -300px;
+      top: 50%;
+      transform: translateY(-50%);
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.8), 0 0 30px rgba(255, 255, 255, 0.4);
+    }
+
+    /* Star particle effect */
+    .star-particle {
+      position: absolute;
+      width: 3px;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 50%;
+      pointer-events: none;
+      animation: particleFloat 0.8s ease-out forwards;
+    }
+
+    @keyframes particleFloat {
+      0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(var(--px, 20px), var(--py, -20px)) scale(0);
+        opacity: 0;
+      }
+    }
+
+    .plus-star::before,
+    .plus-star::after {
+      content: '';
+      position: absolute;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 1px;
+      transition: all 0.3s ease;
+    }
+
+    .plus-star::before {
+      width: 12px;
+      height: 2px;
+      top: 5px;
+      left: 0;
+    }
+
+    .plus-star::after {
+      width: 2px;
+      height: 12px;
+      top: 0;
+      left: 5px;
+    }
+
+    @keyframes starFloat {
+      0%, 100% {
+        transform: translate(0, 0);
+        opacity: 0.3;
+      }
+      50% {
+        transform: translate(var(--drift-x, 20px), var(--drift-y, -30px));
+        opacity: 0.8;
+      }
+    }
+
+    @keyframes starTwinkle {
+      0%, 100% {
+        opacity: 0.3;
+      }
+      50% {
+        opacity: 1;
+      }
+    }
+
+    @keyframes shootingStar {
+      0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(var(--shoot-x, 2500px), var(--shoot-y, 1500px)) scale(0.5);
+        opacity: 0;
+      }
+    }
+
+    @keyframes starTwinkle {
+      0%, 100% {
+        opacity: 0.3;
+      }
+      50% {
+        opacity: 1;
+      }
+    }
+
     .container {
       max-width: 1200px;
       margin: 0 auto;
@@ -818,9 +1028,9 @@ const server = http.createServer((req, res) => {
     }
 
     .card-title {
-      font-family: 'Fredoka', sans-serif;
-      font-size: 1.5rem;
-      font-weight: 600;
+      font-family: 'Quicksand', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 500;
       margin-bottom: 24px;
       position: relative;
       z-index: 1;
@@ -828,6 +1038,7 @@ const server = http.createServer((req, res) => {
       align-items: center;
       gap: 12px;
       color: var(--text);
+      letter-spacing: 0.02em;
     }
 
     .endpoint-showcase {
@@ -842,12 +1053,13 @@ const server = http.createServer((req, res) => {
 
     .endpoint-label {
       font-family: 'Comfortaa', sans-serif;
-      font-size: 0.75rem;
-      font-weight: 700;
+      font-size: 0.9rem;
+      font-weight: 800;
       color: var(--purple);
       text-transform: uppercase;
-      letter-spacing: 0.15em;
+      letter-spacing: 0.2em;
       margin-bottom: 16px;
+      text-shadow: 0 1px 2px rgba(155, 138, 196, 0.2);
     }
 
     .endpoint-url {
@@ -995,11 +1207,12 @@ const server = http.createServer((req, res) => {
     }
 
     .server-name {
-      font-family: 'Fredoka', sans-serif;
+      font-family: 'Quicksand', sans-serif;
       font-size: 1rem;
       font-weight: 600;
       color: var(--text);
       margin-bottom: 4px;
+      letter-spacing: 0.02em;
     }
 
     .server-cmd {
@@ -1290,6 +1503,8 @@ const server = http.createServer((req, res) => {
     <div class="shape shape-3"></div>
   </div>
 
+  <div class="interactive-objects" id="interactive-objects"></div>
+
   <div class="container">
     <header>
       <div class="logo-wrapper">
@@ -1385,6 +1600,7 @@ const server = http.createServer((req, res) => {
       document.documentElement.setAttribute('data-theme', newTheme);
       localStorage.setItem('mcp-theme', newTheme);
       updateThemeButton(newTheme);
+      createInteractiveObjects();
     }
 
     function updateThemeButton(theme) {
@@ -1404,6 +1620,14 @@ const server = http.createServer((req, res) => {
     let autoScroll = true;
     const logBox = document.getElementById('log-container');
     const scrollBtn = document.getElementById('scroll-btn');
+
+    // Interactive Objects Management
+    const objectsContainer = document.getElementById('interactive-objects');
+    let interactiveObjects = [];
+    const LIGHT_OBJECT_COUNT = 8;
+    const DARK_OBJECT_COUNT = 12;
+    let footprintInterval = null;
+    let nextFootprintTime = 0;
 
     function copyText(text) {
       navigator.clipboard.writeText(text);
@@ -1470,6 +1694,251 @@ const server = http.createServer((req, res) => {
       pupils.forEach(pupil => {
         pupil.style.transform = \`translate(calc(-50% + \${pupilX}px), calc(-50% + \${pupilY}px))\`;
       });
+    });
+
+    function createInteractiveObjects() {
+      // Clear existing objects
+      objectsContainer.innerHTML = '';
+      interactiveObjects = [];
+
+      // Clear any existing interval
+      if (footprintInterval) {
+        clearInterval(footprintInterval);
+        footprintInterval = null;
+      }
+
+      const theme = document.documentElement.getAttribute('data-theme');
+
+      if (theme === 'dark') {
+        // Create more plus-shaped stars with interactivity
+        for (let i = 0; i < DARK_OBJECT_COUNT; i++) {
+          createPlusStar(i);
+        }
+      } else {
+        // Use single interval for all footprints
+        nextFootprintTime = Date.now();
+        footprintInterval = setInterval(() => {
+          if (Date.now() >= nextFootprintTime) {
+            createFootprint();
+            // Schedule next footprint with randomized timing
+            nextFootprintTime = Date.now() + 2500 + Math.random() * 2500;
+          }
+        }, 500);
+        
+        // Launch initial footprints with staggered timing
+        for (let i = 0; i < LIGHT_OBJECT_COUNT; i++) {
+          setTimeout(() => createFootprint(), i * 2500 + Math.random() * 1000);
+        }
+      }
+    }
+
+    function createFootprint() {
+      const footprint = document.createElement('div');
+      footprint.className = 'footprint';
+      
+      const viewportHeight = Math.max(window.innerHeight, document.documentElement.clientHeight);
+      const viewportWidth = Math.max(window.innerWidth, document.documentElement.clientWidth);
+      const size = 35 + Math.random() * 20; // Larger: 35-55px
+      
+      // Random starting position on left or bottom edge
+      const fromSide = Math.random() > 0.5;
+      let startX, startY;
+      
+      if (fromSide) {
+        startX = -50;
+        startY = Math.random() * viewportHeight;
+      } else {
+        startX = Math.random() * viewportWidth;
+        startY = viewportHeight + 50;
+      }
+      
+      footprint.style.width = size + 'px';
+      footprint.style.height = size + 'px';
+      footprint.style.left = startX + 'px';
+      footprint.style.top = startY + 'px';
+      
+      const colors = [
+        'rgba(169, 158, 213, 0.7)',
+        'rgba(184, 174, 216, 0.7)',
+        'rgba(168, 230, 207, 0.7)',
+        'rgba(135, 206, 250, 0.7)'
+      ];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      
+      // Footprint SVG (simple foot shape)
+      footprint.innerHTML = \`
+        <svg viewBox="0 0 24 24" fill="\${color}" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="12" cy="16" rx="7" ry="5" />
+          <circle cx="8" cy="8" r="2.5" />
+          <circle cx="12" cy="6" r="2.5" />
+          <circle cx="16" cy="8" r="2.5" />
+        </svg>
+      \`;
+      
+      const duration = 8 + Math.random() * 4;
+      footprint.style.animation = \`walkPath \${duration}s ease-in-out forwards\`;
+      
+      // Hover interaction: Run away fast
+      footprint.addEventListener('mouseenter', function() {
+        const rect = footprint.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const mouseX = event.clientX;
+        const mouseY = event.clientY;
+        
+        // Calculate direction away from mouse
+        const angle = Math.atan2(centerY - mouseY, centerX - mouseX);
+        const runX = Math.cos(angle) * 200;
+        const runY = Math.sin(angle) * 200;
+        
+        footprint.style.setProperty('--run-x', runX + 'px');
+        footprint.style.setProperty('--run-y', runY + 'px');
+      });
+      
+      // Click interaction: Sprint away and disappear
+      footprint.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const rect = footprint.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const mouseX = e.clientX;
+        const mouseY = e.clientY;
+        
+        // Calculate direction away from mouse
+        const angle = Math.atan2(centerY - mouseY, centerX - mouseX);
+        const sprintX = Math.cos(angle) * 300;
+        const sprintY = Math.sin(angle) * 300;
+        
+        footprint.style.setProperty('--sprint-x', sprintX + 'px');
+        footprint.style.setProperty('--sprint-y', sprintY + 'px');
+        footprint.classList.add('clicked');
+        
+        setTimeout(() => footprint.remove(), 1200);
+      });
+      
+      objectsContainer.appendChild(footprint);
+      
+      setTimeout(() => {
+        if (!footprint.classList.contains('clicked')) {
+          footprint.remove();
+        }
+      }, duration * 1000);
+    }
+
+    function createPlusStar(index) {
+      const star = document.createElement('div');
+      star.className = 'plus-star';
+      
+      const viewportWidth = Math.max(window.innerWidth, document.documentElement.clientWidth);
+      const viewportHeight = Math.max(window.innerHeight, document.documentElement.clientHeight);
+      const x = Math.random() * viewportWidth;
+      const y = Math.random() * viewportHeight;
+      
+      star.style.left = x + 'px';
+      star.style.top = y + 'px';
+      
+      // Randomize animation
+      const driftX = (Math.random() - 0.5) * 50;
+      const driftY = (Math.random() - 0.5) * 70;
+      star.style.setProperty('--drift-x', driftX + 'px');
+      star.style.setProperty('--drift-y', driftY + 'px');
+      
+      const floatDuration = 5 + Math.random() * 3;
+      const twinkleDuration = 1.5 + Math.random() * 1.5;
+      star.style.animation = \`
+        starFloat \${floatDuration}s ease-in-out infinite,
+        starTwinkle \${twinkleDuration}s ease-in-out infinite
+      \`;
+      star.style.animationDelay = \`\${Math.random() * 2}s, \${Math.random() * 1}s\`;
+      
+      let particleInterval;
+      
+      // Hover interaction: Glow and emit particles
+      star.addEventListener('mouseenter', function() {
+        particleInterval = setInterval(() => {
+          for (let i = 0; i < 3; i++) {
+            createStarParticle(star);
+          }
+        }, 100);
+      });
+      
+      star.addEventListener('mouseleave', function() {
+        if (particleInterval) {
+          clearInterval(particleInterval);
+          particleInterval = null;
+        }
+      });
+      
+      // Click interaction: Become shooting star with tail
+      star.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (!star.classList.contains('shooting')) {
+          star.classList.add('shooting');
+          
+          if (particleInterval) {
+            clearInterval(particleInterval);
+            particleInterval = null;
+          }
+          
+          // Calculate shooting direction (away from click or random diagonal)
+          const rect = star.getBoundingClientRect();
+          const centerX = rect.left + rect.width / 2;
+          const centerY = rect.top + rect.height / 2;
+          
+          // Shoot towards bottom-right corner with longer distance
+          const shootX = viewportWidth - centerX + 1000;
+          const shootY = viewportHeight - centerY + 1000;
+          
+          star.style.setProperty('--shoot-x', shootX + 'px');
+          star.style.setProperty('--shoot-y', shootY + 'px');
+          
+          setTimeout(() => {
+            star.remove();
+            const idx = interactiveObjects.indexOf(star);
+            if (idx > -1) {
+              interactiveObjects.splice(idx, 1);
+            }
+            // Create a new star to replace it
+            setTimeout(() => createPlusStar(Math.floor(Math.random() * DARK_OBJECT_COUNT)), 1000);
+          }, 3000);
+        }
+      });
+      
+      objectsContainer.appendChild(star);
+      interactiveObjects.push(star);
+    }
+
+    function createStarParticle(star) {
+      const particle = document.createElement('div');
+      particle.className = 'star-particle';
+      
+      const rect = star.getBoundingClientRect();
+      particle.style.left = (rect.left + rect.width / 2) + 'px';
+      particle.style.top = (rect.top + rect.height / 2) + 'px';
+      
+      const angle = Math.random() * Math.PI * 2;
+      const distance = 15 + Math.random() * 25;
+      const px = Math.cos(angle) * distance;
+      const py = Math.sin(angle) * distance;
+      
+      particle.style.setProperty('--px', px + 'px');
+      particle.style.setProperty('--py', py + 'px');
+      
+      objectsContainer.appendChild(particle);
+      
+      setTimeout(() => particle.remove(), 800);
+    }
+
+    // Initialize interactive objects
+    createInteractiveObjects();
+
+    // Handle window resize to keep objects in view
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        createInteractiveObjects();
+      }, 500);
     });
 
     const events = new EventSource('/logs');
