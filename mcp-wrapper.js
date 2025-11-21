@@ -1550,6 +1550,15 @@ const server = http.createServer((req, res) => {
     // Interactive Objects Management
     const objectsContainer = document.getElementById('interactive-objects');
     let interactiveObjects = [];
+    const OBJECT_COUNT = 15;
+    const BUBBLE_COLORS = [
+      'linear-gradient(135deg, rgba(169, 158, 213, 0.6), rgba(212, 201, 232, 0.8))',
+      'linear-gradient(135deg, rgba(184, 174, 216, 0.6), rgba(155, 138, 196, 0.8))',
+      'linear-gradient(135deg, rgba(168, 230, 207, 0.6), rgba(125, 211, 176, 0.8))',
+      'linear-gradient(135deg, rgba(255, 192, 203, 0.6), rgba(255, 182, 193, 0.8))',
+      'linear-gradient(135deg, rgba(135, 206, 250, 0.6), rgba(176, 224, 230, 0.8))'
+    ];
+    let shootingStarInterval = null;
 
     function copyText(text) {
       navigator.clipboard.writeText(text);
@@ -1624,14 +1633,33 @@ const server = http.createServer((req, res) => {
       interactiveObjects = [];
 
       const theme = document.documentElement.getAttribute('data-theme');
-      const count = 15;
 
-      for (let i = 0; i < count; i++) {
+      // Manage shooting star interval based on theme
+      if (shootingStarInterval) {
+        clearInterval(shootingStarInterval);
+        shootingStarInterval = null;
+      }
+
+      for (let i = 0; i < OBJECT_COUNT; i++) {
         if (theme === 'dark') {
           createStar(i);
         } else {
           createBubble(i);
         }
+      }
+
+      // Start shooting stars only in dark mode
+      if (theme === 'dark') {
+        shootingStarInterval = setInterval(() => {
+          if (Math.random() > 0.7) {
+            const tempStar = document.createElement('div');
+            tempStar.className = 'star shooting';
+            tempStar.style.left = (Math.max(window.innerWidth, document.documentElement.clientWidth) + 100) + 'px';
+            tempStar.style.top = (Math.random() * Math.max(window.innerHeight, document.documentElement.clientHeight) * 0.5) + 'px';
+            objectsContainer.appendChild(tempStar);
+            setTimeout(() => tempStar.remove(), 2000);
+          }
+        }, 3000);
       }
     }
 
@@ -1640,22 +1668,16 @@ const server = http.createServer((req, res) => {
       bubble.className = 'bubble';
       
       const size = 30 + Math.random() * 60;
-      const x = Math.random() * window.innerWidth;
-      const y = Math.random() * window.innerHeight;
-      
-      const colors = [
-        'linear-gradient(135deg, rgba(169, 158, 213, 0.6), rgba(212, 201, 232, 0.8))',
-        'linear-gradient(135deg, rgba(184, 174, 216, 0.6), rgba(155, 138, 196, 0.8))',
-        'linear-gradient(135deg, rgba(168, 230, 207, 0.6), rgba(125, 211, 176, 0.8))',
-        'linear-gradient(135deg, rgba(255, 192, 203, 0.6), rgba(255, 182, 193, 0.8))',
-        'linear-gradient(135deg, rgba(135, 206, 250, 0.6), rgba(176, 224, 230, 0.8))'
-      ];
+      const viewportWidth = Math.max(window.innerWidth, document.documentElement.clientWidth);
+      const viewportHeight = Math.max(window.innerHeight, document.documentElement.clientHeight);
+      const x = Math.random() * viewportWidth;
+      const y = Math.random() * viewportHeight;
       
       bubble.style.width = size + 'px';
       bubble.style.height = size + 'px';
       bubble.style.left = x + 'px';
       bubble.style.top = y + 'px';
-      bubble.style.background = colors[index % colors.length];
+      bubble.style.background = BUBBLE_COLORS[index % BUBBLE_COLORS.length];
       bubble.style.animationDelay = (index * 0.5) + 's';
       bubble.style.animationDuration = (6 + Math.random() * 4) + 's';
       
@@ -1712,7 +1734,7 @@ const server = http.createServer((req, res) => {
         if (index > -1) {
           interactiveObjects.splice(index, 1);
           // Create a new bubble to replace it
-          setTimeout(() => createBubble(Math.floor(Math.random() * 5)), 500);
+          setTimeout(() => createBubble(Math.floor(Math.random() * BUBBLE_COLORS.length)), 500);
         }
       }, 500);
     }
@@ -1721,8 +1743,10 @@ const server = http.createServer((req, res) => {
       const star = document.createElement('div');
       star.className = 'star';
       
-      const x = Math.random() * window.innerWidth;
-      const y = Math.random() * window.innerHeight;
+      const viewportWidth = Math.max(window.innerWidth, document.documentElement.clientWidth);
+      const viewportHeight = Math.max(window.innerHeight, document.documentElement.clientHeight);
+      const x = Math.random() * viewportWidth;
+      const y = Math.random() * viewportHeight;
       
       star.style.left = x + 'px';
       star.style.top = y + 'px';
@@ -1753,7 +1777,7 @@ const server = http.createServer((req, res) => {
         if (index > -1) {
           interactiveObjects.splice(index, 1);
           // Create a new star to replace it
-          setTimeout(() => createStar(Math.floor(Math.random() * 15)), 1000);
+          setTimeout(() => createStar(Math.floor(Math.random() * OBJECT_COUNT)), 1000);
         }
       }, 2000);
     }
@@ -1761,18 +1785,14 @@ const server = http.createServer((req, res) => {
     // Initialize interactive objects
     createInteractiveObjects();
 
-    // Add random shooting stars in dark mode
-    setInterval(() => {
-      const theme = document.documentElement.getAttribute('data-theme');
-      if (theme === 'dark' && Math.random() > 0.7) {
-        const tempStar = document.createElement('div');
-        tempStar.className = 'star shooting';
-        tempStar.style.left = (window.innerWidth + 100) + 'px';
-        tempStar.style.top = (Math.random() * window.innerHeight * 0.5) + 'px';
-        objectsContainer.appendChild(tempStar);
-        setTimeout(() => tempStar.remove(), 2000);
-      }
-    }, 3000);
+    // Handle window resize to keep objects in view
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        createInteractiveObjects();
+      }, 500);
+    });
 
     const events = new EventSource('/logs');
     events.onmessage = (e) => {
