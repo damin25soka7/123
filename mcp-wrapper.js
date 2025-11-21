@@ -545,7 +545,7 @@ const server = http.createServer((req, res) => {
       display: block;
       opacity: 0;
       cursor: pointer;
-      transition: transform 0.3s ease;
+      transition: all 0.2s ease;
     }
 
     [data-theme="dark"] .footprint {
@@ -553,7 +553,11 @@ const server = http.createServer((req, res) => {
     }
 
     .footprint:hover {
-      transform: scale(1.2);
+      animation: footprintRunAway 0.8s ease-out forwards !important;
+    }
+
+    .footprint.clicked {
+      animation: footprintSprint 1.2s ease-out forwards !important;
     }
 
     .footprint svg {
@@ -568,14 +572,40 @@ const server = http.createServer((req, res) => {
         transform: scale(0.8);
       }
       10% {
-        opacity: 0.5;
+        opacity: 0.6;
       }
       90% {
-        opacity: 0.5;
+        opacity: 0.6;
       }
       100% {
         opacity: 0;
         transform: scale(1.2);
+      }
+    }
+
+    @keyframes footprintRunAway {
+      0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 0.6;
+      }
+      100% {
+        transform: translate(var(--run-x, 150px), var(--run-y, -150px)) scale(0.5);
+        opacity: 0;
+      }
+    }
+
+    @keyframes footprintSprint {
+      0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 0.6;
+      }
+      50% {
+        transform: translate(var(--sprint-x, 250px), var(--sprint-y, -250px)) scale(1.3);
+        opacity: 0.4;
+      }
+      100% {
+        transform: translate(calc(var(--sprint-x, 250px) * 2), calc(var(--sprint-y, -250px) * 2)) scale(0.3);
+        opacity: 0;
       }
     }
 
@@ -594,12 +624,48 @@ const server = http.createServer((req, res) => {
       display: block;
     }
 
-    .plus-star:hover {
-      transform: scale(1.5) rotate(45deg);
+    .plus-star:hover::before,
+    .plus-star:hover::after {
+      background: rgba(255, 255, 255, 1);
+      box-shadow: 0 0 15px rgba(255, 255, 255, 1), 0 0 30px rgba(255, 255, 255, 0.5);
     }
 
-    .plus-star.clicked {
-      animation: starBurst 0.6s ease-out forwards;
+    .plus-star.shooting {
+      animation: shootingStar 1.5s ease-out forwards;
+    }
+
+    .plus-star.shooting::after {
+      content: '';
+      position: absolute;
+      width: 60px;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0) 100%);
+      left: -60px;
+      top: 50%;
+      transform: translateY(-50%);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+    }
+
+    /* Star particle effect */
+    .star-particle {
+      position: absolute;
+      width: 3px;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 50%;
+      pointer-events: none;
+      animation: particleFloat 0.8s ease-out forwards;
+    }
+
+    @keyframes particleFloat {
+      0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(var(--px, 20px), var(--py, -20px)) scale(0);
+        opacity: 0;
+      }
     }
 
     .plus-star::before,
@@ -609,12 +675,6 @@ const server = http.createServer((req, res) => {
       background: rgba(255, 255, 255, 0.8);
       border-radius: 1px;
       transition: all 0.3s ease;
-    }
-
-    .plus-star:hover::before,
-    .plus-star:hover::after {
-      background: rgba(255, 255, 255, 1);
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
     }
 
     .plus-star::before {
@@ -651,17 +711,13 @@ const server = http.createServer((req, res) => {
       }
     }
 
-    @keyframes starBurst {
+    @keyframes shootingStar {
       0% {
-        transform: scale(1) rotate(0deg);
+        transform: translate(0, 0) scale(1) rotate(0deg);
         opacity: 1;
       }
-      50% {
-        transform: scale(2) rotate(180deg);
-        opacity: 0.5;
-      }
       100% {
-        transform: scale(3) rotate(360deg);
+        transform: translate(var(--shoot-x, 2000px), var(--shoot-y, 1000px)) scale(0.3) rotate(360deg);
         opacity: 0;
       }
     }
@@ -1677,7 +1733,7 @@ const server = http.createServer((req, res) => {
       
       const viewportHeight = Math.max(window.innerHeight, document.documentElement.clientHeight);
       const viewportWidth = Math.max(window.innerWidth, document.documentElement.clientWidth);
-      const size = 20 + Math.random() * 12;
+      const size = 35 + Math.random() * 20; // Larger: 35-55px
       
       // Random starting position on left or bottom edge
       const fromSide = Math.random() > 0.5;
@@ -1697,10 +1753,10 @@ const server = http.createServer((req, res) => {
       footprint.style.top = startY + 'px';
       
       const colors = [
-        'rgba(169, 158, 213, 0.6)',
-        'rgba(184, 174, 216, 0.6)',
-        'rgba(168, 230, 207, 0.6)',
-        'rgba(135, 206, 250, 0.6)'
+        'rgba(169, 158, 213, 0.7)',
+        'rgba(184, 174, 216, 0.7)',
+        'rgba(168, 230, 207, 0.7)',
+        'rgba(135, 206, 250, 0.7)'
       ];
       const color = colors[Math.floor(Math.random() * colors.length)];
       
@@ -1717,17 +1773,51 @@ const server = http.createServer((req, res) => {
       const duration = 8 + Math.random() * 4;
       footprint.style.animation = \`walkPath \${duration}s ease-in-out forwards\`;
       
-      // Click interaction
-      footprint.addEventListener('click', function() {
-        footprint.style.animation = 'none';
-        footprint.style.opacity = '0';
-        footprint.style.transform = 'scale(1.5) rotate(360deg)';
-        setTimeout(() => footprint.remove(), 500);
+      // Hover interaction: Run away fast
+      footprint.addEventListener('mouseenter', function() {
+        const rect = footprint.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const mouseX = event.clientX;
+        const mouseY = event.clientY;
+        
+        // Calculate direction away from mouse
+        const angle = Math.atan2(centerY - mouseY, centerX - mouseX);
+        const runX = Math.cos(angle) * 200;
+        const runY = Math.sin(angle) * 200;
+        
+        footprint.style.setProperty('--run-x', runX + 'px');
+        footprint.style.setProperty('--run-y', runY + 'px');
+      });
+      
+      // Click interaction: Sprint away and disappear
+      footprint.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const rect = footprint.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const mouseX = e.clientX;
+        const mouseY = e.clientY;
+        
+        // Calculate direction away from mouse
+        const angle = Math.atan2(centerY - mouseY, centerX - mouseX);
+        const sprintX = Math.cos(angle) * 300;
+        const sprintY = Math.sin(angle) * 300;
+        
+        footprint.style.setProperty('--sprint-x', sprintX + 'px');
+        footprint.style.setProperty('--sprint-y', sprintY + 'px');
+        footprint.classList.add('clicked');
+        
+        setTimeout(() => footprint.remove(), 1200);
       });
       
       objectsContainer.appendChild(footprint);
       
-      setTimeout(() => footprint.remove(), duration * 1000);
+      setTimeout(() => {
+        if (!footprint.classList.contains('clicked')) {
+          footprint.remove();
+        }
+      }, duration * 1000);
     }
 
     function createPlusStar(index) {
@@ -1756,24 +1846,82 @@ const server = http.createServer((req, res) => {
       \`;
       star.style.animationDelay = \`\${Math.random() * 2}s, \${Math.random() * 1}s\`;
       
-      // Add click interaction
-      star.addEventListener('click', function() {
-        if (!star.classList.contains('clicked')) {
-          star.classList.add('clicked');
+      let particleInterval;
+      
+      // Hover interaction: Glow and emit particles
+      star.addEventListener('mouseenter', function() {
+        particleInterval = setInterval(() => {
+          for (let i = 0; i < 3; i++) {
+            createStarParticle(star);
+          }
+        }, 100);
+      });
+      
+      star.addEventListener('mouseleave', function() {
+        if (particleInterval) {
+          clearInterval(particleInterval);
+          particleInterval = null;
+        }
+      });
+      
+      // Click interaction: Become shooting star with tail
+      star.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (!star.classList.contains('shooting')) {
+          star.classList.add('shooting');
+          
+          if (particleInterval) {
+            clearInterval(particleInterval);
+            particleInterval = null;
+          }
+          
+          // Calculate shooting direction (away from click or random diagonal)
+          const rect = star.getBoundingClientRect();
+          const centerX = rect.left + rect.width / 2;
+          const centerY = rect.top + rect.height / 2;
+          
+          // Shoot towards bottom-right corner generally
+          const shootX = viewportWidth - centerX + 500;
+          const shootY = viewportHeight - centerY + 500;
+          
+          star.style.setProperty('--shoot-x', shootX + 'px');
+          star.style.setProperty('--shoot-y', shootY + 'px');
+          
           setTimeout(() => {
             star.remove();
-            const index = interactiveObjects.indexOf(star);
-            if (index > -1) {
-              interactiveObjects.splice(index, 1);
+            const idx = interactiveObjects.indexOf(star);
+            if (idx > -1) {
+              interactiveObjects.splice(idx, 1);
             }
             // Create a new star to replace it
-            setTimeout(() => createPlusStar(Math.floor(Math.random() * DARK_OBJECT_COUNT)), 800);
-          }, 600);
+            setTimeout(() => createPlusStar(Math.floor(Math.random() * DARK_OBJECT_COUNT)), 1000);
+          }, 1500);
         }
       });
       
       objectsContainer.appendChild(star);
       interactiveObjects.push(star);
+    }
+
+    function createStarParticle(star) {
+      const particle = document.createElement('div');
+      particle.className = 'star-particle';
+      
+      const rect = star.getBoundingClientRect();
+      particle.style.left = (rect.left + rect.width / 2) + 'px';
+      particle.style.top = (rect.top + rect.height / 2) + 'px';
+      
+      const angle = Math.random() * Math.PI * 2;
+      const distance = 15 + Math.random() * 25;
+      const px = Math.cos(angle) * distance;
+      const py = Math.sin(angle) * distance;
+      
+      particle.style.setProperty('--px', px + 'px');
+      particle.style.setProperty('--py', py + 'px');
+      
+      objectsContainer.appendChild(particle);
+      
+      setTimeout(() => particle.remove(), 800);
     }
 
     // Initialize interactive objects
