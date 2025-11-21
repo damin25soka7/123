@@ -526,6 +526,145 @@ const server = http.createServer((req, res) => {
       }
     }
 
+    /* Interactive Objects Container */
+    .interactive-objects {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* Light Mode: Floating Bubbles */
+    .bubble {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: auto;
+      cursor: pointer;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      animation: bubbleFloat 8s infinite ease-in-out;
+      box-shadow: 
+        inset 0 0 20px rgba(255, 255, 255, 0.5),
+        0 8px 30px rgba(155, 138, 196, 0.3);
+    }
+
+    .bubble:hover {
+      transform: scale(1.2);
+    }
+
+    .bubble.popping {
+      animation: pop 0.5s ease-out forwards;
+    }
+
+    @keyframes bubbleFloat {
+      0%, 100% {
+        transform: translateY(0) translateX(0);
+      }
+      25% {
+        transform: translateY(-20px) translateX(10px);
+      }
+      50% {
+        transform: translateY(-40px) translateX(-10px);
+      }
+      75% {
+        transform: translateY(-20px) translateX(15px);
+      }
+    }
+
+    @keyframes pop {
+      0% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.5);
+        opacity: 0.5;
+      }
+      100% {
+        transform: scale(2);
+        opacity: 0;
+      }
+    }
+
+    /* Dark Mode: Stars and Sparkles */
+    [data-theme="dark"] .bubble {
+      display: none;
+    }
+
+    .star {
+      position: absolute;
+      pointer-events: auto;
+      cursor: pointer;
+      display: none;
+    }
+
+    [data-theme="dark"] .star {
+      display: block;
+    }
+
+    .star::before {
+      content: '✨';
+      font-size: 20px;
+      animation: twinkle 3s infinite ease-in-out;
+      display: block;
+      filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
+    }
+
+    .star:hover::before {
+      animation: none;
+      transform: scale(1.5) rotate(180deg);
+      transition: transform 0.3s ease;
+    }
+
+    .star.shooting {
+      animation: shoot 2s ease-out forwards;
+    }
+
+    @keyframes twinkle {
+      0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+      50% {
+        opacity: 0.4;
+        transform: scale(0.8);
+      }
+    }
+
+    @keyframes shoot {
+      0% {
+        transform: translateX(0) translateY(0);
+        opacity: 1;
+      }
+      100% {
+        transform: translateX(-300px) translateY(300px);
+        opacity: 0;
+      }
+    }
+
+    /* Particle effects */
+    .particle {
+      position: absolute;
+      pointer-events: none;
+      border-radius: 50%;
+      animation: particleRise 1s ease-out forwards;
+      z-index: 10;
+    }
+
+    @keyframes particleRise {
+      0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(var(--tx, 0), var(--ty, -50px)) scale(0);
+        opacity: 0;
+      }
+    }
+
     .container {
       max-width: 1200px;
       margin: 0 auto;
@@ -1290,6 +1429,8 @@ const server = http.createServer((req, res) => {
     <div class="shape shape-3"></div>
   </div>
 
+  <div class="interactive-objects" id="interactive-objects"></div>
+
   <div class="container">
     <header>
       <div class="logo-wrapper">
@@ -1385,6 +1526,7 @@ const server = http.createServer((req, res) => {
       document.documentElement.setAttribute('data-theme', newTheme);
       localStorage.setItem('mcp-theme', newTheme);
       updateThemeButton(newTheme);
+      createInteractiveObjects();
     }
 
     function updateThemeButton(theme) {
@@ -1404,6 +1546,10 @@ const server = http.createServer((req, res) => {
     let autoScroll = true;
     const logBox = document.getElementById('log-container');
     const scrollBtn = document.getElementById('scroll-btn');
+
+    // Interactive Objects Management
+    const objectsContainer = document.getElementById('interactive-objects');
+    let interactiveObjects = [];
 
     function copyText(text) {
       navigator.clipboard.writeText(text);
@@ -1471,6 +1617,162 @@ const server = http.createServer((req, res) => {
         pupil.style.transform = \`translate(calc(-50% + \${pupilX}px), calc(-50% + \${pupilY}px))\`;
       });
     });
+
+    function createInteractiveObjects() {
+      // Clear existing objects
+      objectsContainer.innerHTML = '';
+      interactiveObjects = [];
+
+      const theme = document.documentElement.getAttribute('data-theme');
+      const count = 15;
+
+      for (let i = 0; i < count; i++) {
+        if (theme === 'dark') {
+          createStar(i);
+        } else {
+          createBubble(i);
+        }
+      }
+    }
+
+    function createBubble(index) {
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      
+      const size = 30 + Math.random() * 60;
+      const x = Math.random() * window.innerWidth;
+      const y = Math.random() * window.innerHeight;
+      
+      const colors = [
+        'linear-gradient(135deg, rgba(169, 158, 213, 0.6), rgba(212, 201, 232, 0.8))',
+        'linear-gradient(135deg, rgba(184, 174, 216, 0.6), rgba(155, 138, 196, 0.8))',
+        'linear-gradient(135deg, rgba(168, 230, 207, 0.6), rgba(125, 211, 176, 0.8))',
+        'linear-gradient(135deg, rgba(255, 192, 203, 0.6), rgba(255, 182, 193, 0.8))',
+        'linear-gradient(135deg, rgba(135, 206, 250, 0.6), rgba(176, 224, 230, 0.8))'
+      ];
+      
+      bubble.style.width = size + 'px';
+      bubble.style.height = size + 'px';
+      bubble.style.left = x + 'px';
+      bubble.style.top = y + 'px';
+      bubble.style.background = colors[index % colors.length];
+      bubble.style.animationDelay = (index * 0.5) + 's';
+      bubble.style.animationDuration = (6 + Math.random() * 4) + 's';
+      
+      bubble.addEventListener('click', function(e) {
+        popBubble(bubble, e.clientX, e.clientY);
+      });
+
+      bubble.addEventListener('mousemove', function(e) {
+        const rect = bubble.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
+        const distance = 10;
+        const offsetX = Math.cos(angle + Math.PI) * distance;
+        const offsetY = Math.sin(angle + Math.PI) * distance;
+        bubble.style.transform = \`translate(\${offsetX}px, \${offsetY}px)\`;
+      });
+
+      bubble.addEventListener('mouseleave', function() {
+        bubble.style.transform = '';
+      });
+      
+      objectsContainer.appendChild(bubble);
+      interactiveObjects.push(bubble);
+    }
+
+    function popBubble(bubble, x, y) {
+      bubble.classList.add('popping');
+      
+      // Create particles
+      for (let i = 0; i < 8; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        const size = 5 + Math.random() * 10;
+        particle.style.width = size + 'px';
+        particle.style.height = size + 'px';
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        particle.style.background = bubble.style.background;
+        
+        const angle = (i / 8) * Math.PI * 2;
+        const distance = 30 + Math.random() * 30;
+        particle.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+        particle.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
+        
+        objectsContainer.appendChild(particle);
+        
+        setTimeout(() => particle.remove(), 1000);
+      }
+      
+      setTimeout(() => {
+        bubble.remove();
+        const index = interactiveObjects.indexOf(bubble);
+        if (index > -1) {
+          interactiveObjects.splice(index, 1);
+          // Create a new bubble to replace it
+          setTimeout(() => createBubble(Math.floor(Math.random() * 5)), 500);
+        }
+      }, 500);
+    }
+
+    function createStar(index) {
+      const star = document.createElement('div');
+      star.className = 'star';
+      
+      const x = Math.random() * window.innerWidth;
+      const y = Math.random() * window.innerHeight;
+      
+      star.style.left = x + 'px';
+      star.style.top = y + 'px';
+      star.style.animationDelay = (Math.random() * 3) + 's';
+      
+      star.addEventListener('click', function() {
+        shootStar(star);
+      });
+
+      star.addEventListener('mouseenter', function() {
+        star.style.filter = 'brightness(2) drop-shadow(0 0 15px rgba(255, 255, 255, 1))';
+      });
+
+      star.addEventListener('mouseleave', function() {
+        star.style.filter = '';
+      });
+      
+      objectsContainer.appendChild(star);
+      interactiveObjects.push(star);
+    }
+
+    function shootStar(star) {
+      star.classList.add('shooting');
+      
+      setTimeout(() => {
+        star.remove();
+        const index = interactiveObjects.indexOf(star);
+        if (index > -1) {
+          interactiveObjects.splice(index, 1);
+          // Create a new star to replace it
+          setTimeout(() => createStar(Math.floor(Math.random() * 15)), 1000);
+        }
+      }, 2000);
+    }
+
+    // Initialize interactive objects
+    createInteractiveObjects();
+
+    // Add random shooting stars in dark mode
+    setInterval(() => {
+      const theme = document.documentElement.getAttribute('data-theme');
+      if (theme === 'dark' && Math.random() > 0.7) {
+        const tempStar = document.createElement('div');
+        tempStar.className = 'star shooting';
+        tempStar.style.left = (window.innerWidth + 100) + 'px';
+        tempStar.style.top = (Math.random() * window.innerHeight * 0.5) + 'px';
+        objectsContainer.appendChild(tempStar);
+        setTimeout(() => tempStar.remove(), 2000);
+      }
+    }, 3000);
 
     const events = new EventSource('/logs');
     events.onmessage = (e) => {
