@@ -538,130 +538,93 @@ const server = http.createServer((req, res) => {
       pointer-events: none;
     }
 
-    /* Light Mode: Floating Bubbles */
-    .bubble {
-      position: absolute;
-      border-radius: 50%;
-      pointer-events: auto;
-      cursor: pointer;
-      transition: transform 0.3s ease, opacity 0.3s ease;
-      animation: bubbleFloat 8s infinite ease-in-out;
-      box-shadow: 
-        inset 0 0 20px rgba(255, 255, 255, 0.5),
-        0 8px 30px rgba(155, 138, 196, 0.3);
-    }
-
-    .bubble:hover {
-      transform: scale(1.2);
-    }
-
-    .bubble.popping {
-      animation: pop 0.5s ease-out forwards;
-    }
-
-    @keyframes bubbleFloat {
-      0%, 100% {
-        transform: translateY(0) translateX(0);
-      }
-      25% {
-        transform: translateY(-20px) translateX(10px);
-      }
-      50% {
-        transform: translateY(-40px) translateX(-10px);
-      }
-      75% {
-        transform: translateY(-20px) translateX(15px);
-      }
-    }
-
-    @keyframes pop {
-      0% {
-        transform: scale(1);
-        opacity: 1;
-      }
-      50% {
-        transform: scale(1.5);
-        opacity: 0.5;
-      }
-      100% {
-        transform: scale(2);
-        opacity: 0;
-      }
-    }
-
-    /* Dark Mode: Stars and Sparkles */
-    [data-theme="dark"] .bubble {
-      display: none;
-    }
-
-    .star {
-      position: absolute;
-      pointer-events: auto;
-      cursor: pointer;
-      display: none;
-    }
-
-    [data-theme="dark"] .star {
-      display: block;
-    }
-
-    .star::before {
-      content: '✨';
-      font-size: 20px;
-      animation: twinkle 3s infinite ease-in-out;
-      display: block;
-      filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
-    }
-
-    .star:hover::before {
-      animation: none;
-      transform: scale(1.5) rotate(180deg);
-      transition: transform 0.3s ease;
-    }
-
-    .star.shooting {
-      animation: shoot 2s ease-out forwards;
-    }
-
-    @keyframes twinkle {
-      0%, 100% {
-        opacity: 1;
-        transform: scale(1);
-      }
-      50% {
-        opacity: 0.4;
-        transform: scale(0.8);
-      }
-    }
-
-    @keyframes shoot {
-      0% {
-        transform: translateX(0) translateY(0);
-        opacity: 1;
-      }
-      100% {
-        transform: translateX(-300px) translateY(300px);
-        opacity: 0;
-      }
-    }
-
-    /* Particle effects */
-    .particle {
+    /* Light Mode: Paper Airplanes */
+    .paper-plane {
       position: absolute;
       pointer-events: none;
-      border-radius: 50%;
-      animation: particleRise 1s ease-out forwards;
-      z-index: 10;
+      display: block;
+      opacity: 0.6;
     }
 
-    @keyframes particleRise {
+    [data-theme="dark"] .paper-plane {
+      display: none;
+    }
+
+    .paper-plane svg {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 2px 4px rgba(155, 138, 196, 0.2));
+    }
+
+    @keyframes flyAcross {
       0% {
-        transform: translate(0, 0) scale(1);
-        opacity: 1;
+        transform: translate(0, 0) rotate(-5deg);
+        opacity: 0;
+      }
+      5% {
+        opacity: 0.6;
+      }
+      95% {
+        opacity: 0.6;
       }
       100% {
-        transform: translate(var(--tx, 0), var(--ty, -50px)) scale(0);
+        transform: translate(120vw, -20vh) rotate(5deg);
         opacity: 0;
+      }
+    }
+
+    /* Dark Mode: Minimalist Plus Stars */
+    .plus-star {
+      position: absolute;
+      pointer-events: none;
+      display: none;
+      width: 12px;
+      height: 12px;
+    }
+
+    [data-theme="dark"] .plus-star {
+      display: block;
+    }
+
+    .plus-star::before,
+    .plus-star::after {
+      content: '';
+      position: absolute;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 1px;
+    }
+
+    .plus-star::before {
+      width: 12px;
+      height: 2px;
+      top: 5px;
+      left: 0;
+    }
+
+    .plus-star::after {
+      width: 2px;
+      height: 12px;
+      top: 0;
+      left: 5px;
+    }
+
+    @keyframes starFloat {
+      0%, 100% {
+        transform: translate(0, 0);
+        opacity: 0.3;
+      }
+      50% {
+        transform: translate(var(--drift-x, 20px), var(--drift-y, -30px));
+        opacity: 0.8;
+      }
+    }
+
+    @keyframes starTwinkle {
+      0%, 100% {
+        opacity: 0.3;
+      }
+      50% {
+        opacity: 1;
       }
     }
 
@@ -957,9 +920,9 @@ const server = http.createServer((req, res) => {
     }
 
     .card-title {
-      font-family: 'Fredoka', sans-serif;
-      font-size: 1.5rem;
-      font-weight: 600;
+      font-family: 'Quicksand', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 500;
       margin-bottom: 24px;
       position: relative;
       z-index: 1;
@@ -967,6 +930,7 @@ const server = http.createServer((req, res) => {
       align-items: center;
       gap: 12px;
       color: var(--text);
+      letter-spacing: 0.02em;
     }
 
     .endpoint-showcase {
@@ -1550,15 +1514,8 @@ const server = http.createServer((req, res) => {
     // Interactive Objects Management
     const objectsContainer = document.getElementById('interactive-objects');
     let interactiveObjects = [];
-    const OBJECT_COUNT = 15;
-    const BUBBLE_COLORS = [
-      'linear-gradient(135deg, rgba(169, 158, 213, 0.6), rgba(212, 201, 232, 0.8))',
-      'linear-gradient(135deg, rgba(184, 174, 216, 0.6), rgba(155, 138, 196, 0.8))',
-      'linear-gradient(135deg, rgba(168, 230, 207, 0.6), rgba(125, 211, 176, 0.8))',
-      'linear-gradient(135deg, rgba(255, 192, 203, 0.6), rgba(255, 182, 193, 0.8))',
-      'linear-gradient(135deg, rgba(135, 206, 250, 0.6), rgba(176, 224, 230, 0.8))'
-    ];
-    let shootingStarInterval = null;
+    const OBJECT_COUNT = 8;
+    let planeIntervals = [];
 
     function copyText(text) {
       navigator.clipboard.writeText(text);
@@ -1632,116 +1589,70 @@ const server = http.createServer((req, res) => {
       objectsContainer.innerHTML = '';
       interactiveObjects = [];
 
+      // Clear any existing intervals
+      planeIntervals.forEach(interval => clearInterval(interval));
+      planeIntervals = [];
+
       const theme = document.documentElement.getAttribute('data-theme');
 
-      // Manage shooting star interval based on theme
-      if (shootingStarInterval) {
-        clearInterval(shootingStarInterval);
-        shootingStarInterval = null;
-      }
-
-      for (let i = 0; i < OBJECT_COUNT; i++) {
-        if (theme === 'dark') {
-          createStar(i);
-        } else {
-          createBubble(i);
-        }
-      }
-
-      // Start shooting stars only in dark mode
       if (theme === 'dark') {
-        shootingStarInterval = setInterval(() => {
-          if (Math.random() > 0.7) {
-            const tempStar = document.createElement('div');
-            tempStar.className = 'star shooting';
-            tempStar.style.left = (Math.max(window.innerWidth, document.documentElement.clientWidth) + 100) + 'px';
-            tempStar.style.top = (Math.random() * Math.max(window.innerHeight, document.documentElement.clientHeight) * 0.5) + 'px';
-            objectsContainer.appendChild(tempStar);
-            setTimeout(() => tempStar.remove(), 2000);
-          }
-        }, 3000);
-      }
-    }
-
-    function createBubble(index) {
-      const bubble = document.createElement('div');
-      bubble.className = 'bubble';
-      
-      const size = 30 + Math.random() * 60;
-      const viewportWidth = Math.max(window.innerWidth, document.documentElement.clientWidth);
-      const viewportHeight = Math.max(window.innerHeight, document.documentElement.clientHeight);
-      const x = Math.random() * viewportWidth;
-      const y = Math.random() * viewportHeight;
-      
-      bubble.style.width = size + 'px';
-      bubble.style.height = size + 'px';
-      bubble.style.left = x + 'px';
-      bubble.style.top = y + 'px';
-      bubble.style.background = BUBBLE_COLORS[index % BUBBLE_COLORS.length];
-      bubble.style.animationDelay = (index * 0.5) + 's';
-      bubble.style.animationDuration = (6 + Math.random() * 4) + 's';
-      
-      bubble.addEventListener('click', function(e) {
-        popBubble(bubble, e.clientX, e.clientY);
-      });
-
-      bubble.addEventListener('mousemove', function(e) {
-        const rect = bubble.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-        const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
-        const distance = 10;
-        const offsetX = Math.cos(angle + Math.PI) * distance;
-        const offsetY = Math.sin(angle + Math.PI) * distance;
-        bubble.style.transform = \`translate(\${offsetX}px, \${offsetY}px)\`;
-      });
-
-      bubble.addEventListener('mouseleave', function() {
-        bubble.style.transform = '';
-      });
-      
-      objectsContainer.appendChild(bubble);
-      interactiveObjects.push(bubble);
-    }
-
-    function popBubble(bubble, x, y) {
-      bubble.classList.add('popping');
-      
-      // Create particles
-      for (let i = 0; i < 8; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'particle';
-        const size = 5 + Math.random() * 10;
-        particle.style.width = size + 'px';
-        particle.style.height = size + 'px';
-        particle.style.left = x + 'px';
-        particle.style.top = y + 'px';
-        particle.style.background = bubble.style.background;
-        
-        const angle = (i / 8) * Math.PI * 2;
-        const distance = 30 + Math.random() * 30;
-        particle.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
-        particle.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
-        
-        objectsContainer.appendChild(particle);
-        
-        setTimeout(() => particle.remove(), 1000);
-      }
-      
-      setTimeout(() => {
-        bubble.remove();
-        const index = interactiveObjects.indexOf(bubble);
-        if (index > -1) {
-          interactiveObjects.splice(index, 1);
-          // Create a new bubble to replace it
-          setTimeout(() => createBubble(Math.floor(Math.random() * BUBBLE_COLORS.length)), 500);
+        // Create plus-shaped stars
+        for (let i = 0; i < OBJECT_COUNT; i++) {
+          createPlusStar(i);
         }
-      }, 500);
+      } else {
+        // Create paper airplanes that fly periodically
+        for (let i = 0; i < OBJECT_COUNT; i++) {
+          const delay = i * 4000 + Math.random() * 2000;
+          const interval = setInterval(() => {
+            createPaperPlane();
+          }, 12000 + Math.random() * 8000);
+          planeIntervals.push(interval);
+          
+          // Launch first plane after initial delay
+          setTimeout(() => createPaperPlane(), delay);
+        }
+      }
     }
 
-    function createStar(index) {
+    function createPaperPlane() {
+      const plane = document.createElement('div');
+      plane.className = 'paper-plane';
+      
+      const viewportHeight = Math.max(window.innerHeight, document.documentElement.clientHeight);
+      const size = 24 + Math.random() * 16;
+      const startY = Math.random() * (viewportHeight * 0.7) + (viewportHeight * 0.1);
+      
+      plane.style.width = size + 'px';
+      plane.style.height = size + 'px';
+      plane.style.left = '-50px';
+      plane.style.top = startY + 'px';
+      
+      const colors = [
+        'rgba(169, 158, 213, 0.7)',
+        'rgba(184, 174, 216, 0.7)',
+        'rgba(168, 230, 207, 0.7)',
+        'rgba(135, 206, 250, 0.7)'
+      ];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      
+      plane.innerHTML = \`
+        <svg viewBox="0 0 24 24" fill="\${color}" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2.5 19.5L21.5 12L2.5 4.5L2.5 10.5L15.5 12L2.5 13.5L2.5 19.5Z"/>
+        </svg>
+      \`;
+      
+      const duration = 20 + Math.random() * 10;
+      plane.style.animation = \`flyAcross \${duration}s linear forwards\`;
+      
+      objectsContainer.appendChild(plane);
+      
+      setTimeout(() => plane.remove(), duration * 1000);
+    }
+
+    function createPlusStar(index) {
       const star = document.createElement('div');
-      star.className = 'star';
+      star.className = 'plus-star';
       
       const viewportWidth = Math.max(window.innerWidth, document.documentElement.clientWidth);
       const viewportHeight = Math.max(window.innerHeight, document.documentElement.clientHeight);
@@ -1750,36 +1661,23 @@ const server = http.createServer((req, res) => {
       
       star.style.left = x + 'px';
       star.style.top = y + 'px';
-      star.style.animationDelay = (Math.random() * 3) + 's';
       
-      star.addEventListener('click', function() {
-        shootStar(star);
-      });
-
-      star.addEventListener('mouseenter', function() {
-        star.style.filter = 'brightness(2) drop-shadow(0 0 15px rgba(255, 255, 255, 1))';
-      });
-
-      star.addEventListener('mouseleave', function() {
-        star.style.filter = '';
-      });
+      // Randomize animation
+      const driftX = (Math.random() - 0.5) * 40;
+      const driftY = (Math.random() - 0.5) * 60;
+      star.style.setProperty('--drift-x', driftX + 'px');
+      star.style.setProperty('--drift-y', driftY + 'px');
+      
+      const floatDuration = 6 + Math.random() * 4;
+      const twinkleDuration = 2 + Math.random() * 2;
+      star.style.animation = \`
+        starFloat \${floatDuration}s ease-in-out infinite,
+        starTwinkle \${twinkleDuration}s ease-in-out infinite
+      \`;
+      star.style.animationDelay = \`\${Math.random() * 2}s, \${Math.random() * 1}s\`;
       
       objectsContainer.appendChild(star);
       interactiveObjects.push(star);
-    }
-
-    function shootStar(star) {
-      star.classList.add('shooting');
-      
-      setTimeout(() => {
-        star.remove();
-        const index = interactiveObjects.indexOf(star);
-        if (index > -1) {
-          interactiveObjects.splice(index, 1);
-          // Create a new star to replace it
-          setTimeout(() => createStar(Math.floor(Math.random() * OBJECT_COUNT)), 1000);
-        }
-      }, 2000);
     }
 
     // Initialize interactive objects
