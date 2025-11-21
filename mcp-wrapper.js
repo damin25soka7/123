@@ -538,52 +538,68 @@ const server = http.createServer((req, res) => {
       pointer-events: none;
     }
 
-    /* Light Mode: Paper Airplanes */
-    .paper-plane {
+    /* Light Mode: Walking Footprints */
+    .footprint {
       position: absolute;
-      pointer-events: none;
+      pointer-events: auto;
       display: block;
-      opacity: 0.6;
+      opacity: 0;
+      cursor: pointer;
+      transition: transform 0.3s ease;
     }
 
-    [data-theme="dark"] .paper-plane {
+    [data-theme="dark"] .footprint {
       display: none;
     }
 
-    .paper-plane svg {
+    .footprint:hover {
+      transform: scale(1.2);
+    }
+
+    .footprint svg {
       width: 100%;
       height: 100%;
-      filter: drop-shadow(0 2px 4px rgba(155, 138, 196, 0.2));
+      filter: drop-shadow(0 2px 4px rgba(155, 138, 196, 0.3));
     }
 
-    @keyframes flyAcross {
+    @keyframes walkPath {
       0% {
-        transform: translate(0, 0) rotate(-5deg);
         opacity: 0;
+        transform: scale(0.8);
       }
-      5% {
-        opacity: 0.6;
+      10% {
+        opacity: 0.5;
       }
-      95% {
-        opacity: 0.6;
+      90% {
+        opacity: 0.5;
       }
       100% {
-        transform: translate(120vw, -20vh) rotate(5deg);
         opacity: 0;
+        transform: scale(1.2);
       }
     }
 
-    /* Dark Mode: Minimalist Plus Stars */
+    /* Dark Mode: Interactive Plus Stars */
     .plus-star {
       position: absolute;
-      pointer-events: none;
+      pointer-events: auto;
       display: none;
       width: 12px;
       height: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
     }
 
     [data-theme="dark"] .plus-star {
       display: block;
+    }
+
+    .plus-star:hover {
+      transform: scale(1.5) rotate(45deg);
+    }
+
+    .plus-star.clicked {
+      animation: starBurst 0.6s ease-out forwards;
     }
 
     .plus-star::before,
@@ -592,6 +608,13 @@ const server = http.createServer((req, res) => {
       position: absolute;
       background: rgba(255, 255, 255, 0.8);
       border-radius: 1px;
+      transition: all 0.3s ease;
+    }
+
+    .plus-star:hover::before,
+    .plus-star:hover::after {
+      background: rgba(255, 255, 255, 1);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
     }
 
     .plus-star::before {
@@ -616,6 +639,30 @@ const server = http.createServer((req, res) => {
       50% {
         transform: translate(var(--drift-x, 20px), var(--drift-y, -30px));
         opacity: 0.8;
+      }
+    }
+
+    @keyframes starTwinkle {
+      0%, 100% {
+        opacity: 0.3;
+      }
+      50% {
+        opacity: 1;
+      }
+    }
+
+    @keyframes starBurst {
+      0% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(2) rotate(180deg);
+        opacity: 0.5;
+      }
+      100% {
+        transform: scale(3) rotate(360deg);
+        opacity: 0;
       }
     }
 
@@ -945,12 +992,13 @@ const server = http.createServer((req, res) => {
 
     .endpoint-label {
       font-family: 'Comfortaa', sans-serif;
-      font-size: 0.75rem;
-      font-weight: 700;
+      font-size: 0.9rem;
+      font-weight: 800;
       color: var(--purple);
       text-transform: uppercase;
-      letter-spacing: 0.15em;
+      letter-spacing: 0.2em;
       margin-bottom: 16px;
+      text-shadow: 0 1px 2px rgba(155, 138, 196, 0.2);
     }
 
     .endpoint-url {
@@ -1098,11 +1146,12 @@ const server = http.createServer((req, res) => {
     }
 
     .server-name {
-      font-family: 'Fredoka', sans-serif;
+      font-family: 'Quicksand', sans-serif;
       font-size: 1rem;
       font-weight: 600;
       color: var(--text);
       margin-bottom: 4px;
+      letter-spacing: 0.02em;
     }
 
     .server-cmd {
@@ -1514,9 +1563,10 @@ const server = http.createServer((req, res) => {
     // Interactive Objects Management
     const objectsContainer = document.getElementById('interactive-objects');
     let interactiveObjects = [];
-    const OBJECT_COUNT = 8;
-    let planeInterval = null;
-    let nextPlaneTime = 0;
+    const LIGHT_OBJECT_COUNT = 8;
+    const DARK_OBJECT_COUNT = 12;
+    let footprintInterval = null;
+    let nextFootprintTime = 0;
 
     function copyText(text) {
       navigator.clipboard.writeText(text);
@@ -1591,69 +1641,93 @@ const server = http.createServer((req, res) => {
       interactiveObjects = [];
 
       // Clear any existing interval
-      if (planeInterval) {
-        clearInterval(planeInterval);
-        planeInterval = null;
+      if (footprintInterval) {
+        clearInterval(footprintInterval);
+        footprintInterval = null;
       }
 
       const theme = document.documentElement.getAttribute('data-theme');
 
       if (theme === 'dark') {
-        // Create plus-shaped stars
-        for (let i = 0; i < OBJECT_COUNT; i++) {
+        // Create more plus-shaped stars with interactivity
+        for (let i = 0; i < DARK_OBJECT_COUNT; i++) {
           createPlusStar(i);
         }
       } else {
-        // Use single interval for all paper airplanes
-        nextPlaneTime = Date.now();
-        planeInterval = setInterval(() => {
-          if (Date.now() >= nextPlaneTime) {
-            createPaperPlane();
-            // Schedule next plane with randomized timing
-            nextPlaneTime = Date.now() + 2000 + Math.random() * 3000;
+        // Use single interval for all footprints
+        nextFootprintTime = Date.now();
+        footprintInterval = setInterval(() => {
+          if (Date.now() >= nextFootprintTime) {
+            createFootprint();
+            // Schedule next footprint with randomized timing
+            nextFootprintTime = Date.now() + 2500 + Math.random() * 2500;
           }
         }, 500);
         
-        // Launch initial planes with staggered timing
-        for (let i = 0; i < OBJECT_COUNT; i++) {
-          setTimeout(() => createPaperPlane(), i * 3000 + Math.random() * 1000);
+        // Launch initial footprints with staggered timing
+        for (let i = 0; i < LIGHT_OBJECT_COUNT; i++) {
+          setTimeout(() => createFootprint(), i * 2500 + Math.random() * 1000);
         }
       }
     }
 
-    function createPaperPlane() {
-      const plane = document.createElement('div');
-      plane.className = 'paper-plane';
+    function createFootprint() {
+      const footprint = document.createElement('div');
+      footprint.className = 'footprint';
       
       const viewportHeight = Math.max(window.innerHeight, document.documentElement.clientHeight);
-      const size = 24 + Math.random() * 16;
-      const startY = Math.random() * (viewportHeight * 0.7) + (viewportHeight * 0.1);
+      const viewportWidth = Math.max(window.innerWidth, document.documentElement.clientWidth);
+      const size = 20 + Math.random() * 12;
       
-      plane.style.width = size + 'px';
-      plane.style.height = size + 'px';
-      plane.style.left = '-50px';
-      plane.style.top = startY + 'px';
+      // Random starting position on left or bottom edge
+      const fromSide = Math.random() > 0.5;
+      let startX, startY;
+      
+      if (fromSide) {
+        startX = -50;
+        startY = Math.random() * viewportHeight;
+      } else {
+        startX = Math.random() * viewportWidth;
+        startY = viewportHeight + 50;
+      }
+      
+      footprint.style.width = size + 'px';
+      footprint.style.height = size + 'px';
+      footprint.style.left = startX + 'px';
+      footprint.style.top = startY + 'px';
       
       const colors = [
-        'rgba(169, 158, 213, 0.7)',
-        'rgba(184, 174, 216, 0.7)',
-        'rgba(168, 230, 207, 0.7)',
-        'rgba(135, 206, 250, 0.7)'
+        'rgba(169, 158, 213, 0.6)',
+        'rgba(184, 174, 216, 0.6)',
+        'rgba(168, 230, 207, 0.6)',
+        'rgba(135, 206, 250, 0.6)'
       ];
       const color = colors[Math.floor(Math.random() * colors.length)];
       
-      plane.innerHTML = \`
+      // Footprint SVG (simple foot shape)
+      footprint.innerHTML = \`
         <svg viewBox="0 0 24 24" fill="\${color}" xmlns="http://www.w3.org/2000/svg">
-          <path d="M2.5 19.5L21.5 12L2.5 4.5L2.5 10.5L15.5 12L2.5 13.5L2.5 19.5Z"/>
+          <ellipse cx="12" cy="16" rx="7" ry="5" />
+          <circle cx="8" cy="8" r="2.5" />
+          <circle cx="12" cy="6" r="2.5" />
+          <circle cx="16" cy="8" r="2.5" />
         </svg>
       \`;
       
-      const duration = 20 + Math.random() * 10;
-      plane.style.animation = \`flyAcross \${duration}s linear forwards\`;
+      const duration = 8 + Math.random() * 4;
+      footprint.style.animation = \`walkPath \${duration}s ease-in-out forwards\`;
       
-      objectsContainer.appendChild(plane);
+      // Click interaction
+      footprint.addEventListener('click', function() {
+        footprint.style.animation = 'none';
+        footprint.style.opacity = '0';
+        footprint.style.transform = 'scale(1.5) rotate(360deg)';
+        setTimeout(() => footprint.remove(), 500);
+      });
       
-      setTimeout(() => plane.remove(), duration * 1000);
+      objectsContainer.appendChild(footprint);
+      
+      setTimeout(() => footprint.remove(), duration * 1000);
     }
 
     function createPlusStar(index) {
@@ -1669,18 +1743,34 @@ const server = http.createServer((req, res) => {
       star.style.top = y + 'px';
       
       // Randomize animation
-      const driftX = (Math.random() - 0.5) * 40;
-      const driftY = (Math.random() - 0.5) * 60;
+      const driftX = (Math.random() - 0.5) * 50;
+      const driftY = (Math.random() - 0.5) * 70;
       star.style.setProperty('--drift-x', driftX + 'px');
       star.style.setProperty('--drift-y', driftY + 'px');
       
-      const floatDuration = 6 + Math.random() * 4;
-      const twinkleDuration = 2 + Math.random() * 2;
+      const floatDuration = 5 + Math.random() * 3;
+      const twinkleDuration = 1.5 + Math.random() * 1.5;
       star.style.animation = \`
         starFloat \${floatDuration}s ease-in-out infinite,
         starTwinkle \${twinkleDuration}s ease-in-out infinite
       \`;
       star.style.animationDelay = \`\${Math.random() * 2}s, \${Math.random() * 1}s\`;
+      
+      // Add click interaction
+      star.addEventListener('click', function() {
+        if (!star.classList.contains('clicked')) {
+          star.classList.add('clicked');
+          setTimeout(() => {
+            star.remove();
+            const index = interactiveObjects.indexOf(star);
+            if (index > -1) {
+              interactiveObjects.splice(index, 1);
+            }
+            // Create a new star to replace it
+            setTimeout(() => createPlusStar(Math.floor(Math.random() * DARK_OBJECT_COUNT)), 800);
+          }, 600);
+        }
+      });
       
       objectsContainer.appendChild(star);
       interactiveObjects.push(star);
