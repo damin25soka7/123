@@ -571,11 +571,11 @@ const server = http.createServer((req, res) => {
         opacity: 0;
         transform: scale(0.8);
       }
-      10% {
-        opacity: 0.6;
+      5% {
+        opacity: 0.8;
       }
-      90% {
-        opacity: 0.6;
+      95% {
+        opacity: 0.8;
       }
       100% {
         opacity: 0;
@@ -631,19 +631,24 @@ const server = http.createServer((req, res) => {
     }
 
     .plus-star.shooting {
-      animation: shootingStar 1.5s ease-out forwards;
+      animation: starFloat 5s ease-in-out infinite, 
+                 starTwinkle 2s ease-in-out infinite,
+                 shootingStar 3s ease-in-out forwards;
     }
 
     .plus-star.shooting::after {
       content: '';
       position: absolute;
-      width: 60px;
-      height: 2px;
-      background: linear-gradient(90deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0) 100%);
-      left: -60px;
+      width: 300px;
+      height: 3px;
+      background: linear-gradient(90deg, 
+        rgba(255, 255, 255, 0.9) 0%, 
+        rgba(255, 255, 255, 0.6) 20%,
+        rgba(255, 255, 255, 0) 100%);
+      left: -300px;
       top: 50%;
       transform: translateY(-50%);
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.8), 0 0 30px rgba(255, 255, 255, 0.4);
     }
 
     /* Star particle effect */
@@ -713,11 +718,11 @@ const server = http.createServer((req, res) => {
 
     @keyframes shootingStar {
       0% {
-        transform: translate(0, 0) scale(1) rotate(0deg);
+        transform: translate(0, 0) scale(1);
         opacity: 1;
       }
       100% {
-        transform: translate(var(--shoot-x, 2000px), var(--shoot-y, 1000px)) scale(0.3) rotate(360deg);
+        transform: translate(var(--shoot-x, 2500px), var(--shoot-y, 1500px)) scale(0.5);
         opacity: 0;
       }
     }
@@ -1880,9 +1885,9 @@ const server = http.createServer((req, res) => {
           const centerX = rect.left + rect.width / 2;
           const centerY = rect.top + rect.height / 2;
           
-          // Shoot towards bottom-right corner generally
-          const shootX = viewportWidth - centerX + 500;
-          const shootY = viewportHeight - centerY + 500;
+          // Shoot towards bottom-right corner with longer distance
+          const shootX = viewportWidth - centerX + 1000;
+          const shootY = viewportHeight - centerY + 1000;
           
           star.style.setProperty('--shoot-x', shootX + 'px');
           star.style.setProperty('--shoot-y', shootY + 'px');
@@ -1895,7 +1900,7 @@ const server = http.createServer((req, res) => {
             }
             // Create a new star to replace it
             setTimeout(() => createPlusStar(Math.floor(Math.random() * DARK_OBJECT_COUNT)), 1000);
-          }, 1500);
+          }, 3000);
         }
       });
       
