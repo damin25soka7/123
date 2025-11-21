@@ -1515,7 +1515,8 @@ const server = http.createServer((req, res) => {
     const objectsContainer = document.getElementById('interactive-objects');
     let interactiveObjects = [];
     const OBJECT_COUNT = 8;
-    let planeIntervals = [];
+    let planeInterval = null;
+    let nextPlaneTime = 0;
 
     function copyText(text) {
       navigator.clipboard.writeText(text);
@@ -1589,9 +1590,11 @@ const server = http.createServer((req, res) => {
       objectsContainer.innerHTML = '';
       interactiveObjects = [];
 
-      // Clear any existing intervals
-      planeIntervals.forEach(interval => clearInterval(interval));
-      planeIntervals = [];
+      // Clear any existing interval
+      if (planeInterval) {
+        clearInterval(planeInterval);
+        planeInterval = null;
+      }
 
       const theme = document.documentElement.getAttribute('data-theme');
 
@@ -1601,16 +1604,19 @@ const server = http.createServer((req, res) => {
           createPlusStar(i);
         }
       } else {
-        // Create paper airplanes that fly periodically
-        for (let i = 0; i < OBJECT_COUNT; i++) {
-          const delay = i * 4000 + Math.random() * 2000;
-          const interval = setInterval(() => {
+        // Use single interval for all paper airplanes
+        nextPlaneTime = Date.now();
+        planeInterval = setInterval(() => {
+          if (Date.now() >= nextPlaneTime) {
             createPaperPlane();
-          }, 12000 + Math.random() * 8000);
-          planeIntervals.push(interval);
-          
-          // Launch first plane after initial delay
-          setTimeout(() => createPaperPlane(), delay);
+            // Schedule next plane with randomized timing
+            nextPlaneTime = Date.now() + 2000 + Math.random() * 3000;
+          }
+        }, 500);
+        
+        // Launch initial planes with staggered timing
+        for (let i = 0; i < OBJECT_COUNT; i++) {
+          setTimeout(() => createPaperPlane(), i * 3000 + Math.random() * 1000);
         }
       }
     }
